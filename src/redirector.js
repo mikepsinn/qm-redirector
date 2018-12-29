@@ -1,12 +1,12 @@
-function addUrlQueryParamsToUrlString (params, url){
-    for (var key in params) {
+function addUrlQueryParamsToUrlString(params, url) {
+    for (let key in params) {
         if (params.hasOwnProperty(key)) {
-            if(url.indexOf(key + '=') === -1){
-                if(params[key] === null){
-                    console.error("Not adding null param "+key);
+            if (url.indexOf(key + '=') === -1) {
+                if (params[key] === null) {
+                    console.error("Not adding null param " + key);
                     continue;
                 }
-                if(url.indexOf('?') === -1){
+                if (url.indexOf('?') === -1) {
                     url = url + "?" + key + "=" + encodeURIComponent(params[key]);
                 } else {
                     url = url + "&" + key + "=" + encodeURIComponent(params[key]);
@@ -16,63 +16,92 @@ function addUrlQueryParamsToUrlString (params, url){
     }
     return url;
 }
-function getSubDomain(){
-    var full = window.location.host;
-    var parts = full.split('.');
+function getSubDomain() {
+    const full = window.location.host;
+    const parts = full.split('.');
     return parts[0].toLowerCase();
 }
-function getClientIdFromSubDomain(){
-    var appConfigFileNames = {
-        "app" : "quantimodo",
-        "energymodo" : "energymodo",
-        "default" : "default",
-        "ionic" : "quantimodo",
-        "local" : "quantimodo",
-        "medimodo" : "medimodo",
-        "mindfirst" : "mindfirst",
-        "moodimodo" : "moodimodo",
-        "oauth" : "quantimodo",
-        "quantimodo" : "quantimodo",
-        "staging" : "quantimodo",
-        "utopia" : "quantimodo",
+function getClientIdFromSubDomain() {
+    const appConfigFileNames = {
+        "app": "quantimodo",
+        "energymodo": "energymodo",
+        "default": "default",
+        "ionic": "quantimodo",
+        "local": "quantimodo",
+        "medimodo": "medimodo",
+        "mindfirst": "mindfirst",
+        "moodimodo": "moodimodo",
+        "oauth": "quantimodo",
+        "quantimodo": "quantimodo",
+        "staging": "quantimodo",
+        "utopia": "quantimodo",
         "your_quantimodo_client_id_here": "your_quantimodo_client_id_here"
     };
-    if(window.location.hostname.indexOf('.quantimo.do') === -1){return null;}
-    var subDomain = getSubDomain();
+    if (window.location.hostname.indexOf('.quantimo.do') === -1) {
+        return null;
+    }
+    let subDomain = getSubDomain();
     subDomain = subDomain.replace('qm-', '');
-    if(subDomain === 'web' || subDomain === 'staging-web'){return null;}
-    var clientIdFromAppConfigName = appConfigFileNames[subDomain];
-    if(clientIdFromAppConfigName){return clientIdFromAppConfigName;}
+    if (subDomain === 'web' || subDomain === 'staging-web') {
+        return null;
+    }
+    const clientIdFromAppConfigName = appConfigFileNames[subDomain];
+    if (clientIdFromAppConfigName) {
+        return clientIdFromAppConfigName;
+    }
     console.debug('Using subDomain as client id: ' + subDomain);
     return subDomain;
 }
-function redirectToIonic(stateName){
-    let newUrl = "https://web.quantimo.do/#/app/"+stateName;
-    if(window.location.search){newUrl += window.location.search;}
-    if(window.location.search.indexOf('client') === -1){
-        let clientId = getClientIdFromSubDomain();
-        if(clientId){newUrl = addUrlQueryParamsToUrlString({clientId: clientId}, newUrl);}
-    }
-    console.log("Going to "+newUrl);
-    window.location.href = newUrl;
+function redirectToIonic(stateName) {
+    let newUrl = "https://web.quantimo.do/#/app/" + stateName;
+    addQueryStringAndRedirect(newUrl);
 }
-function redirectToBuilder(){
+function redirectToBuilder() {
     let newUrl = "https://builder.quantimo.do/#/app/configuration";
-    if(window.location.search){newUrl += window.location.search;}
-    if(window.location.search.indexOf('client') === -1){
+    addQueryStringAndRedirect(newUrl);
+}
+function addSubDomainClientIdToQuery(newUrl) {
+    if (window.location.search.indexOf('client') === -1) {
         let clientId = getClientIdFromSubDomain();
-        if(clientId){newUrl = addUrlQueryParamsToUrlString({clientId: clientId}, newUrl);}
+        if (clientId) {
+            newUrl = addUrlQueryParamsToUrlString({clientId: clientId}, newUrl);
+        }
     }
-    console.log("Going to "+newUrl);
+    return newUrl;
+}
+function redirect(newUrl) {
+    console.log("Going to " + newUrl);
     window.location.href = newUrl;
 }
-function redirectToLaravel(path){
-    let newUrl = "https://web.quantimo.do/#/app/"+stateName;
-    if(window.location.search){newUrl += window.location.search;}
-    if(window.location.search.indexOf('client') === -1){
-        let clientId = getClientIdFromSubDomain();
-        if(clientId){newUrl = addUrlQueryParamsToUrlString({clientId: clientId}, newUrl);}
+function addQueryString(newUrl) {
+    if (window.location.search) {
+        newUrl += window.location.search;
     }
-    console.log("Going to "+newUrl);
-    window.location.href = newUrl;
+    newUrl = addSubDomainClientIdToQuery(newUrl);
+    return newUrl;
+}
+function isQuantiModoSubDomain() {
+    let subDomain = getSubDomain();
+    let baseDomain = window.location.host.replace(subDomain + '.', '');
+    return baseDomain === 'quantimo.do';
+}
+function clientSubDomainRedirectToWebWithQueryParam() {
+    let ionicUrl = "https://web.quantimo.do/" + window.location.hash;
+    ionicUrl = addSubDomainClientIdToQuery(ionicUrl);
+    redirect(ionicUrl);
+}
+function addQueryStringAndRedirect(newUrl) {
+    newUrl = addQueryString(newUrl);
+    redirect(newUrl);
+}
+function generalRedirectHandler() {
+    const hostToRedirectUrlMap = {
+        'studies.quantimo.do': "quantimo.do/studies"
+    };
+    if (typeof hostToRedirectUrlMap[window.location.host] !== "undefined") {
+        let newUrl = "https://" + hostToRedirectUrlMap[window.location.host];
+        addQueryStringAndRedirect(newUrl);
+    } else if (isQuantiModoSubDomain() && getSubDomain() !== "web") {
+        clientSubDomainRedirectToWebWithQueryParam();
+    }
 }
