@@ -73,7 +73,7 @@ function redirect(newUrl) {
     console.log("Going to " + newUrl);
     window.location.href = newUrl;
 }
-function addQueryString(newUrl) {
+function addQueryStringWithSubDomainClientIdIfNecessary(newUrl) {
     if (window.location.search) {
         newUrl += window.location.search;
     }
@@ -91,7 +91,7 @@ function clientSubDomainRedirectToWebWithQueryParam() {
     redirect(ionicUrl);
 }
 function addQueryStringAndRedirect(newUrl) {
-    newUrl = addQueryString(newUrl);
+    newUrl = addQueryStringWithSubDomainClientIdIfNecessary(newUrl);
     redirect(newUrl);
 }
 function generalRedirectHandler() {
@@ -100,7 +100,8 @@ function generalRedirectHandler() {
     };
     if (typeof hostToRedirectUrlMap[window.location.host] !== "undefined") {
         let newUrl = "https://" + hostToRedirectUrlMap[window.location.host];
-        addQueryStringAndRedirect(newUrl);
+        if (window.location.search) {newUrl += window.location.search;}
+        redirect(newUrl);
     } else if (isQuantiModoSubDomain() && getSubDomain() !== "web") {
         clientSubDomainRedirectToWebWithQueryParam();
     }
