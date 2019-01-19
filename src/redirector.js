@@ -56,6 +56,13 @@ function redirectToIonic(stateName) {
     let newUrl = "https://web.quantimo.do/#/app/" + stateName;
     addQueryStringAndRedirect(newUrl);
 }
+function redirectToWebSubdomain() {
+    let newUrl = "https://web.quantimo.do/#/app/intro";
+    if(window.location.hash.indexOf('app') !== -1){
+        newUrl = "https://web.quantimo.do/"+window.location.hash;
+    }
+    addQueryStringAndRedirect(newUrl);
+}
 function redirectToBuilder() {
     let newUrl = "https://builder.quantimo.do/#/app/configuration";
     addQueryStringAndRedirect(newUrl);
