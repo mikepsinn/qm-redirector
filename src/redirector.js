@@ -103,7 +103,7 @@ function addQueryStringAndRedirect(newUrl) {
 }
 function generalRedirectHandler() {
     const hostToRedirectUrlMap = {
-        'studies.quantimo.do': "quantimo.do/studies"
+        'studies.quantimo.do': "quantimo.do/studies",
         'build.quantimo.do': "builder.quantimo.do"
     };
     if (typeof hostToRedirectUrlMap[window.location.host] !== "undefined") {
